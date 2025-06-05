@@ -1,0 +1,119 @@
+.instrumento-card {
+  background: #232526;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  cursor: pointer;
+  width: 100%;
+  max-width: 320px;
+  border: 1.5px solid #b87333;
+}
+
+.instrumento-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+  border-color: #ff7f32;
+}
+
+.imagen-container {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+  background: #18191a;
+}
+
+.instrumento-imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #18191a;
+  transition: transform 0.3s ease;
+  display: block;
+  margin: 0 auto;
+}
+
+.instrumento-card:hover .instrumento-imagen {
+  transform: scale(1.05);
+}
+
+.instrumento-info {
+  padding: 18px 16px 14px 16px;
+}
+
+.instrumento-titulo {
+  font-family: 'Raleway', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f5f5f5;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 36px;
+}
+
+.precio-container {
+  margin-bottom: 8px;
+}
+
+.precio {
+  font-size: 24px;
+  font-weight: 500;
+  color: #ff7f32;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.envio-container {
+  margin-bottom: 8px;
+  min-height: 20px;
+}
+
+.envio-gratis {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #b87333;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.camion-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.envio-pago {
+  color: #bbb;
+  font-size: 12px;
+}
+
+.vendidos-container {
+  color: #aaa;
+  font-size: 12px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.vendidos {
+  opacity: 0.8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .instrumento-card {
+    max-width: 100%;
+  }
+
+  .instrumento-titulo {
+    font-size: 14px;
+  }
+
+  .precio {
+    font-size: 20px;
+  }
+}
