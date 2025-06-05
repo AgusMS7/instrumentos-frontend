@@ -1,119 +1,135 @@
-.instrumento-card {
-  background: #232526;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-  cursor: pointer;
-  width: 100%;
-  max-width: 320px;
-  border: 1.5px solid #b87333;
+:root {
+  --color-background: #121212;
+  --color-surface: #1e1e1e;
+  --color-surface-elevated: #232526;
+  --color-primary: #ff7f32;
+  --color-primary-hover: #ff9a5a;
+  --color-secondary: #b87333;
+  --color-text: #f5f5f5;
+  --color-text-secondary: #aaaaaa;
+  --color-border: #333333;
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --transition-standard: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius: 12px;
 }
 
-.instrumento-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.28);
-  border-color: #ff7f32;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.imagen-container {
-  width: 100%;
-  height: 220px;
-  overflow: hidden;
-  position: relative;
-  background: #18191a;
+body {
+  font-family: "Raleway", sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  line-height: 1.6;
 }
 
-.instrumento-imagen {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #18191a;
-  transition: transform 0.3s ease;
-  display: block;
-  margin: 0 auto;
-}
-
-.instrumento-card:hover .instrumento-imagen {
-  transform: scale(1.05);
-}
-
-.instrumento-info {
-  padding: 18px 16px 14px 16px;
-}
-
-.instrumento-titulo {
-  font-family: 'Raleway', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: #f5f5f5;
-  margin: 0 0 12px 0;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 36px;
-}
-
-.precio-container {
-  margin-bottom: 8px;
-}
-
-.precio {
-  font-size: 24px;
-  font-weight: 500;
-  color: #ff7f32;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.envio-container {
-  margin-bottom: 8px;
-  min-height: 20px;
-}
-
-.envio-gratis {
+.App {
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+.btn {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: #b87333;
-  font-size: 13px;
+  justify-content: center;
+  padding: 0.6rem 1.2rem;
+  font-family: "Raleway", sans-serif;
   font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: var(--border-radius);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-standard);
+  text-decoration: none;
+  gap: 0.5rem;
 }
 
-.camion-icon {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
+.btn-primary {
+  background-color: var(--color-primary);
+  color: #fff;
 }
 
-.envio-pago {
-  color: #bbb;
-  font-size: 12px;
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
 }
 
-.vendidos-container {
-  color: #aaa;
-  font-size: 12px;
-  font-family: 'Roboto', sans-serif;
+.btn-outline {
+  background-color: transparent;
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
 }
 
-.vendidos {
-  opacity: 0.8;
+.btn-outline:hover {
+  background-color: rgba(255, 127, 50, 0.1);
+  transform: translateY(-2px);
+}
+
+.section-title {
+  font-family: "Montserrat", sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--color-primary);
+  text-align: center;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.section-title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background-color: var(--color-secondary);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .instrumento-card {
-    max-width: 100%;
+  .section-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 1.5rem;
   }
 
-  .instrumento-titulo {
-    font-size: 14px;
-  }
-
-  .precio {
-    font-size: 20px;
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
   }
 }

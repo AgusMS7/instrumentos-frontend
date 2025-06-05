@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import type { Instrumento } from "../types/Instrumento"
 import "./InstrumentoCard.css"
 
@@ -7,7 +8,7 @@ interface InstrumentoCardProps {
 
 export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
   const formatearPrecio = (precio: string) => {
-    return `$${precio}`
+    return `$${Number.parseInt(precio).toLocaleString("es-AR")}`
   }
 
   const formatearEnvio = (costoEnvio: string) => {
@@ -40,6 +41,10 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
         <div className="vendidos-container">
           <span className="vendidos">{instrumento.cantidadVendida} vendidos</span>
         </div>
+
+        <Link to={`/instrumento/${instrumento.id}`} className="btn-detalle">
+          Ver Detalle
+        </Link>
       </div>
     </div>
   )
