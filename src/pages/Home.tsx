@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { InstrumentoCard } from "../components/InstrumentoCard"
 import { ErrorScreen } from "../components/ErrorScreen"
 import type { Instrumento } from "../types/Instrumento"
@@ -12,6 +13,7 @@ export const Home = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isRetrying, setIsRetrying] = useState(false)
+  const navigate = useNavigate()
 
   const fetchInstrumentos = async () => {
     try {
@@ -66,6 +68,11 @@ export const Home = () => {
     setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
   }
 
+  // Función para navegar al detalle del instrumento
+  const handleInstrumentoClick = (instrumentoId: string) => {
+    navigate(`/instrumento/${instrumentoId}`)
+  }
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -101,17 +108,36 @@ export const Home = () => {
       </header>
 
       <main className="main-content">
-        {/* Slider */}
+        {/* Slider mejorado */}
         {destacados.length > 0 && (
           <div className="slider-container">
             <div className="slider" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
               {destacados.map((instrumento) => (
-                <div key={instrumento.id} className="slide">
+                <div
+                  key={instrumento.id}
+                  className="slide"
+                  onClick={() => handleInstrumentoClick(instrumento.id)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {/* Fondo con blur */}
+                  <div
+                    className="slide-background"
+                    style={{
+                      backgroundImage: `url(http://localhost:3001/images/${instrumento.imagen})`,
+                    }}
+                  />
+
+                  {/* Overlay para mejorar contraste */}
+                  <div className="slide-overlay" />
+
+                  {/* Imagen principal */}
                   <img
                     src={`http://localhost:3001/images/${instrumento.imagen}`}
                     alt={instrumento.instrumento}
                     className="slide-image"
                   />
+
+                  {/* Contenido del slide */}
                   <div className="slide-content">
                     <h3>{instrumento.instrumento}</h3>
                     <p>
@@ -127,15 +153,30 @@ export const Home = () => {
                 <div
                   key={index}
                   className={`slider-dot ${currentSlide === index ? "active" : ""}`}
-                  onClick={() => handleSlideChange(index)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSlideChange(index)
+                  }}
                 />
               ))}
             </div>
 
-            <div className="slider-arrow left" onClick={handlePrevSlide}>
+            <div
+              className="slider-arrow left"
+              onClick={(e) => {
+                e.stopPropagation()
+                handlePrevSlide()
+              }}
+            >
               &#10094;
             </div>
-            <div className="slider-arrow right" onClick={handleNextSlide}>
+            <div
+              className="slider-arrow right"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleNextSlide()
+              }}
+            >
               &#10095;
             </div>
           </div>

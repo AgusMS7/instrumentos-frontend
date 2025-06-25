@@ -1,4 +1,8 @@
-import { Link } from "react-router-dom"
+"use client"
+
+import type React from "react"
+
+import { useNavigate } from "react-router-dom"
 import type { Instrumento } from "../types/Instrumento"
 import "./InstrumentoCard.css"
 
@@ -7,6 +11,8 @@ interface InstrumentoCardProps {
 }
 
 export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
+  const navigate = useNavigate()
+
   const formatearPrecio = (precio: string) => {
     return `$${Number.parseInt(precio).toLocaleString("es-AR")}`
   }
@@ -59,8 +65,17 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
 
   const mainImage = getMainImage()
 
+  const handleCardClick = () => {
+    navigate(`/instrumento/${instrumento.id}`)
+  }
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Evita que se dispare el click de la tarjeta
+    navigate(`/instrumento/${instrumento.id}`)
+  }
+
   return (
-    <div className="instrumento-card">
+    <div className="instrumento-card" onClick={handleCardClick}>
       <div className="imagen-container">
         <img src={mainImage.src || "/placeholder.svg"} alt={mainImage.alt} className="instrumento-imagen" />
       </div>
@@ -78,9 +93,9 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
           <span className="vendidos">{instrumento.cantidadvendida} vendidos</span>
         </div>
 
-        <Link to={`/instrumento/${instrumento.id}`} className="btn-detalle">
+        <button className="btn-detalle" onClick={handleButtonClick}>
           Ver Detalle
-        </Link>
+        </button>
       </div>
     </div>
   )
