@@ -2,13 +2,16 @@
   position: sticky;
   top: 0;
   left: 0;
-  width: 100%;
+  right: 0;
+  width: 100vw;
   background-color: rgba(18, 18, 18, 0.95);
   z-index: 1000;
   transition: var(--transition-standard);
   padding: 1rem 0;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(184, 115, 51, 0.2);
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .navbar.scrolled {
@@ -25,12 +28,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .navbar-logo {
   font-family: "Montserrat", sans-serif;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-primary);
   text-decoration: none;
   letter-spacing: 1px;
@@ -39,7 +44,6 @@
 
 .navbar-logo:hover {
   color: var(--color-primary-hover);
-  transform: scale(1.05);
 }
 
 .navbar-menu {
@@ -52,7 +56,7 @@
   color: var(--color-text);
   text-decoration: none;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 400;
   transition: var(--transition-standard);
   position: relative;
   padding: 0.25rem 0;
@@ -80,7 +84,7 @@
 
 .navbar-link.active {
   color: var(--color-primary);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .mobile-menu-toggle {
@@ -162,5 +166,4 @@
     transform: translateY(0);
     opacity: 1;
   }
-  
 }

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { InstrumentoCard } from "../components/InstrumentoCard"
 import { ErrorScreen } from "../components/ErrorScreen"
 import type { Instrumento } from "../types/Instrumento"
+import { instrumentoService, imageService } from "../services/api"
 import "./Home.css"
 
 export const Home = () => {
@@ -18,14 +19,28 @@ export const Home = () => {
   const fetchInstrumentos = async () => {
     try {
       setError(null)
-      const response = await fetch("http://localhost:3001/api/instrumentos")
+      const response = await instrumentoService.getAllSimple()
+      console.log("Respuesta de API Home:", response)
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      // Manejar diferentes tipos de respuesta
+      let instrumentosArray: Instrumento[] = []
+
+      if (Array.isArray(response)) {
+        // Respuesta directa como array
+        instrumentosArray = response
+      } else if (response.content && Array.isArray(response.content)) {
+        // Respuesta paginada
+        instrumentosArray = response.content
+      } else if (response.success && response.data && Array.isArray(response.data)) {
+        // Respuesta con wrapper {success, message, data}
+        instrumentosArray = response.data
+      } else if (response.data && Array.isArray(response.data)) {
+        // Respuesta con data directo
+        instrumentosArray = response.data
       }
 
-      const data = await response.json()
-      setInstrumentos(data)
+      console.log("Instrumentos procesados:", instrumentosArray)
+      setInstrumentos(instrumentosArray)
     } catch (error) {
       console.error("Error conectando al backend:", error)
       setError(error instanceof Error ? error.message : "Error desconocido")
@@ -68,8 +83,7 @@ export const Home = () => {
     setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
   }
 
-  // Función para navegar al detalle del instrumento
-  const handleInstrumentoClick = (instrumentoId: string) => {
+  const handleInstrumentoClick = (instrumentoId: number) => {
     navigate(`/instrumento/${instrumentoId}`)
   }
 
@@ -95,7 +109,6 @@ export const Home = () => {
     )
   }
 
-  // Seleccionar 3 instrumentos destacados para el slider
   const destacados = instrumentos.slice(0, 3)
 
   return (
@@ -108,36 +121,33 @@ export const Home = () => {
       </header>
 
       <main className="main-content">
-        {/* Slider mejorado */}
         {destacados.length > 0 && (
           <div className="slider-container">
             <div className="slider" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-              {destacados.map((instrumento) => (
+              {destacados.map((instrumento, index) => (
                 <div
                   key={instrumento.id}
                   className="slide"
                   onClick={() => handleInstrumentoClick(instrumento.id)}
                   style={{ cursor: "pointer" }}
                 >
-                  {/* Fondo con blur */}
                   <div
                     className="slide-background"
                     style={{
-                      backgroundImage: `url(http://localhost:3001/images/${instrumento.imagen})`,
+                      backgroundImage: `url(${instrumento.imagen ? imageService.getImageUrl(instrumento.imagen) : "/icons/no-image.svg"})`,
+                    }}
+                  />
+                  <div className="slide-overlay" />
+
+                  <img
+                    src={instrumento.imagen ? imageService.getImageUrl(instrumento.imagen) : "/icons/no-image.svg"}
+                    alt={instrumento.instrumento}
+                    className="slide-image"
+                    onError={(e) => {
+                      e.currentTarget.src = "/icons/no-image.svg"
                     }}
                   />
 
-                  {/* Overlay para mejorar contraste */}
-                  <div className="slide-overlay" />
-
-                  {/* Imagen principal */}
-                  <img
-                    src={`http://localhost:3001/images/${instrumento.imagen}`}
-                    alt={instrumento.instrumento}
-                    className="slide-image"
-                  />
-
-                  {/* Contenido del slide */}
                   <div className="slide-content">
                     <h3>{instrumento.instrumento}</h3>
                     <p>
@@ -182,7 +192,6 @@ export const Home = () => {
           </div>
         )}
 
-        {/* About section */}
         <div className="about-section">
           <h2>Sobre Nosotros</h2>
           <p>
@@ -193,7 +202,6 @@ export const Home = () => {
           </p>
         </div>
 
-        {/* Featured products */}
         <h2 className="section-title">Instrumentos Destacados</h2>
 
         <div className="instrumentos-grid">
@@ -205,3 +213,5 @@ export const Home = () => {
     </div>
   )
 }
+
+export default Home

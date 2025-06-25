@@ -1,22 +1,32 @@
+import type React from "react"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import { Home } from "./pages/Home"
 import { Navbar } from "./components/Navbar"
-import { DondeEstamos } from "./pages/DondeEstamos"
+import { Home } from "./pages/Home"
 import { Productos } from "./pages/Productos"
 import { DetalleInstrumento } from "./pages/DetalleInstrumento"
+import { DondeEstamos } from "./pages/DondeEstamos"
+import { Admin } from "./pages/Admin"
 import "./App.css"
 
-function App() {
+const App: React.FC = () => {
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <div className="App">
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/donde-estamos" element={<DondeEstamos />} />
-          <Route path="/productos" element={<Productos />} />
-          <Route path="/instrumento/:id" element={<DetalleInstrumento />} />
-        </Routes>
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/productos" element={<Productos />} />
+            <Route path="/instrumento/:id" element={<DetalleInstrumento />} />
+            <Route path="/donde-estamos" element={<DondeEstamos />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   )

@@ -4,16 +4,19 @@
   flex-direction: column;
 }
 
+/* Header que ocupa todo el ancho */
 .donde-estamos-header {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
   background: linear-gradient(135deg, #232526 0%, #121212 100%);
-  color: var(--color-text);
-  text-align: center;
-  padding: 2.5rem 1rem 2rem 1rem;
-  margin-bottom: 2rem;
   border-bottom: 4px solid var(--color-secondary);
   box-shadow: var(--shadow-soft);
-  position: relative;
   overflow: hidden;
+  margin-bottom: 1rem;
 }
 
 .donde-estamos-header::before {
@@ -37,6 +40,7 @@
   text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.35);
   position: relative;
   z-index: 2;
+  text-align: center;
 }
 
 .donde-estamos-header p {
@@ -47,6 +51,8 @@
   color: var(--color-text);
   position: relative;
   z-index: 2;
+  text-align: center;
+  padding: 2.5rem 1rem 2rem 1rem;
 }
 
 .donde-estamos-content {
@@ -149,7 +155,7 @@
     padding: 0 0.75rem 2rem;
   }
 
-  .donde-estamos-header {
+  .donde-estamos-header p {
     padding: 2rem 1rem 1.5rem 1rem;
   }
 

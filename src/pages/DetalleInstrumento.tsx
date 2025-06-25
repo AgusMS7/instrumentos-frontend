@@ -1,167 +1,191 @@
 "use client"
 
+import type React from "react"
 import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
-import { ErrorScreen } from "../components/ErrorScreen"
-import type { Instrumento } from "../types/Instrumento"
+import { useParams, useNavigate } from "react-router-dom"
+import type { Instrumento, Categoria, ProductImage } from "../types/Instrumento"
+import { instrumentoService, categoriaService, imageService } from "../services/api"
 import "./DetalleInstrumento.css"
 
-export const DetalleInstrumento = () => {
+export const DetalleInstrumento: React.FC = () => {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [instrumento, setInstrumento] = useState<Instrumento | null>(null)
+  const [categoria, setCategoria] = useState<Categoria | null>(null)
+  const [images, setImages] = useState<ProductImage[]>([])
+  const [primaryImage, setPrimaryImage] = useState<ProductImage | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isRetrying, setIsRetrying] = useState(false)
-
-  const fetchInstrumento = async () => {
-    try {
-      setError(null)
-      const response = await fetch(`http://localhost:3001/api/instrumentos/${id}`)
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Instrumento no encontrado")
-        }
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      setInstrumento(data)
-    } catch (error) {
-      console.error("Error conectando al backend:", error)
-      setError(error instanceof Error ? error.message : "Error desconocido")
-      setInstrumento(null)
-    } finally {
-      setLoading(false)
-      setIsRetrying(false)
-    }
-  }
+  const [imageError, setImageError] = useState(false)
 
   useEffect(() => {
-    fetchInstrumento()
+    if (id) {
+      fetchInstrumento(Number(id))
+    }
   }, [id])
 
-  const handleRetry = () => {
-    setIsRetrying(true)
-    setLoading(true)
-    fetchInstrumento()
+  const fetchInstrumento = async (instrumentoId: number) => {
+    try {
+      setLoading(true)
+      const response = await instrumentoService.getById(instrumentoId)
+      console.log("Respuesta instrumento:", response)
+
+      if (response.success && response.data) {
+        const instrumentoData = response.data
+        setInstrumento(instrumentoData)
+
+        // Cargar categoría si existe
+        if (instrumentoData.idCategoria) {
+          await fetchCategoria(instrumentoData.idCategoria)
+        }
+
+        // Cargar imágenes
+        await fetchImages(instrumentoId)
+      } else {
+        setError("Instrumento no encontrado")
+      }
+    } catch (error) {
+      console.error("Error conectando al backend:", error)
+      setError("Error al cargar el instrumento. Verifica que el backend esté funcionando.")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const formatearPrecio = (precio: string) => {
-    return `$${Number.parseInt(precio).toLocaleString("es-AR")}`
+  const fetchCategoria = async (categoriaId: number) => {
+    try {
+      const response = await categoriaService.getById(categoriaId)
+      if (response.success && response.data) {
+        setCategoria(response.data)
+      }
+    } catch (error) {
+      console.error("Error al cargar categoría:", error)
+    }
   }
 
-  const formatearEnvio = (costoenvio: string) => {
-    if (costoenvio === "G") {
-      return (
-        <div className="envio-gratis-detalle">
-          <img src="/icons/truck.svg" alt="Envío gratis" className="camion-icon-detalle" />
-          <span>Envío gratis a todo el país</span>
-        </div>
-      )
+  const fetchImages = async (instrumentoId: number) => {
+    try {
+      // Obtener todas las imágenes
+      const imagesResponse = await imageService.getByInstrumento(instrumentoId)
+      if (imagesResponse.success && imagesResponse.data) {
+        setImages(imagesResponse.data)
+      }
+
+      // Obtener imagen principal
+      try {
+        const primaryResponse = await imageService.getPrimary(instrumentoId)
+        if (primaryResponse.success && primaryResponse.data) {
+          setPrimaryImage(primaryResponse.data)
+        }
+      } catch (error) {
+        console.log("No hay imagen principal para este instrumento")
+      }
+    } catch (error) {
+      console.error("Error al cargar imágenes:", error)
     }
-    return <span className="envio-pago-detalle">Costo de envío: ${costoenvio}</span>
   }
 
-  // Obtener imagen principal (nueva lógica con fallback)
-  const getMainImage = () => {
-    if (!instrumento) return null
+  const getImageUrl = (): string => {
+    if (!instrumento) return "/icons/no-image.svg"
 
-    // Prioridad 1: main_image de la nueva estructura
-    if (instrumento.main_image) {
-      return {
-        src: instrumento.main_image.url,
-        alt: instrumento.main_image.alt_text || instrumento.instrumento,
-      }
+    if (imageError) {
+      return "/icons/no-image.svg"
     }
 
-    // Prioridad 2: primera imagen de la galería
-    if (instrumento.images && instrumento.images.length > 0) {
-      const firstImage = instrumento.images[0]
-      return {
-        src: firstImage.url,
-        alt: firstImage.alt_text || instrumento.instrumento,
-      }
+    // Prioridad 1: Imagen principal del nuevo sistema
+    if (primaryImage && primaryImage.imageUrl) {
+      return imageService.getImageUrl(primaryImage.imageUrl)
     }
 
-    // Fallback: estructura antigua (compatibilidad)
-    if (instrumento.imagen) {
-      return {
-        src: `http://localhost:3001/images/${instrumento.imagen}`,
-        alt: instrumento.instrumento,
-      }
+    // Prioridad 2: Primera imagen disponible
+    if (images.length > 0) {
+      return imageService.getImageUrl(images[0].imageUrl)
     }
 
-    return null
+    // Prioridad 3: Campo imagen legacy
+    if (instrumento.imagen && instrumento.imagen.trim() !== "") {
+      return imageService.getImageUrl(instrumento.imagen)
+    }
+
+    return "/icons/no-image.svg"
+  }
+
+  const handleImageError = () => {
+    console.log(`Error cargando imagen en detalle: ${instrumento?.id}`)
+    setImageError(true)
   }
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Cargando información del instrumento...</p>
+      <div className="detalle-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Cargando instrumento...</p>
+        </div>
       </div>
     )
   }
 
-  if (error) {
+  if (error || !instrumento) {
     return (
-      <ErrorScreen
-        title="Error al cargar instrumento"
-        message="No se pudo cargar la información del instrumento."
-        details={error}
-        onRetry={handleRetry}
-        isRetrying={isRetrying}
-      />
+      <div className="detalle-container">
+        <div className="detalle-content">
+          <div className="error-container">
+            <h2>⚠️ Error</h2>
+            <p>{error || "Instrumento no encontrado"}</p>
+            <button onClick={() => navigate("/productos")} className="btn btn-primary">
+              ← Volver a Productos
+            </button>
+          </div>
+        </div>
+      </div>
     )
   }
-
-  if (!instrumento) {
-    return (
-      <ErrorScreen
-        title="Instrumento no encontrado"
-        message="El instrumento que buscas no existe o ha sido eliminado."
-        showHomeButton={true}
-        onRetry={undefined}
-      />
-    )
-  }
-
-  const mainImage = getMainImage()
 
   return (
     <div className="detalle-container">
       <div className="detalle-content">
         <div className="detalle-header">
-          <Link to="/productos" className="volver-link">
-            ← Volver a Productos
-          </Link>
+          <button onClick={() => navigate("/productos")} className="volver-link">
+            Volver a Productos
+          </button>
           <h1 className="detalle-titulo">{instrumento.instrumento}</h1>
         </div>
 
         <div className="detalle-grid">
           <div className="detalle-imagen-container">
-            {mainImage ? (
-              <img src={mainImage.src || "/placeholder.svg"} alt={mainImage.alt} className="detalle-imagen" />
-            ) : (
-              <div className="sin-imagen">
-                <span>Sin imagen disponible</span>
-              </div>
-            )}
+            <img
+              src={getImageUrl() || "/placeholder.svg"}
+              alt={primaryImage?.altText || instrumento.instrumento}
+              className="detalle-imagen"
+              onError={handleImageError}
+            />
           </div>
 
           <div className="detalle-info">
             <div className="detalle-precio-container">
-              <span className="detalle-precio">{formatearPrecio(instrumento.precio)}</span>
+              <div className="detalle-precio">${instrumento.precio?.toLocaleString()}</div>
             </div>
 
-            <div className="detalle-envio-container">{formatearEnvio(instrumento.costoenvio)}</div>
+            <div className="detalle-envio-container">
+              {instrumento.costoEnvio === "G" ? (
+                <div className="envio-gratis-detalle">
+                  <img src="/icons/truck.svg" alt="Envío gratis" className="camion-icon-detalle" />
+                  <span>Envío gratis a todo el país</span>
+                </div>
+              ) : (
+                <div className="envio-pago-detalle">
+                  Envío: {instrumento.costoEnvio === "P" ? "Con costo" : `$${instrumento.costoEnvio}`}
+                </div>
+              )}
+            </div>
 
             <div className="detalle-vendidos-container">
-              <span className="detalle-vendidos">{instrumento.cantidadvendida} vendidos</span>
+              <span>{instrumento.cantidadVendida || 0} vendidos</span>
             </div>
 
             <div className="detalle-specs">
+              <h4>Especificaciones</h4>
               <div className="spec-item">
                 <span className="spec-label">Marca:</span>
                 <span className="spec-value">{instrumento.marca}</span>
@@ -170,16 +194,24 @@ export const DetalleInstrumento = () => {
                 <span className="spec-label">Modelo:</span>
                 <span className="spec-value">{instrumento.modelo}</span>
               </div>
+              {categoria && (
+                <div className="spec-item">
+                  <span className="spec-label">Categoría:</span>
+                  <span className="spec-value">{categoria.denominacion}</span>
+                </div>
+              )}
             </div>
 
-            <div className="detalle-descripcion">
-              <h3>Descripción</h3>
-              <p>{instrumento.descripcion}</p>
-            </div>
+            {instrumento.descripcion && (
+              <div className="detalle-descripcion">
+                <h3>Descripción</h3>
+                <p>{instrumento.descripcion}</p>
+              </div>
+            )}
 
             <div className="detalle-actions">
-              <button className="btn btn-primary">Comprar Ahora</button>
-              <button className="btn btn-outline">Agregar al Carrito</button>
+              <button className="btn-comprar">🛒 Agregar al Carrito</button>
+              <button className="btn-favorito">❤️</button>
             </div>
           </div>
         </div>
@@ -187,3 +219,5 @@ export const DetalleInstrumento = () => {
     </div>
   )
 }
+
+export default DetalleInstrumento

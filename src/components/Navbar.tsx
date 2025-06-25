@@ -45,6 +45,9 @@ export const Navbar = () => {
           <Link to="/productos" className={`navbar-link ${location.pathname === "/productos" ? "active" : ""}`}>
             Productos
           </Link>
+          <Link to="/admin" className={`navbar-link ${location.pathname === "/admin" ? "active" : ""}`}>
+            Administración
+          </Link>
         </div>
 
         <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>

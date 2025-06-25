@@ -1,9 +1,10 @@
 "use client"
 
 import type React from "react"
-
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import type { Instrumento } from "../types/Instrumento"
+import type { Instrumento, ProductImage } from "../types/Instrumento"
+import { imageService } from "../services/api"
 import "./InstrumentoCard.css"
 
 interface InstrumentoCardProps {
@@ -12,13 +13,34 @@ interface InstrumentoCardProps {
 
 export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
   const navigate = useNavigate()
+  const [imageError, setImageError] = useState(false)
+  const [primaryImage, setPrimaryImage] = useState<ProductImage | null>(null)
+  const [loadingImage, setLoadingImage] = useState(true)
 
-  const formatearPrecio = (precio: string) => {
-    return `$${Number.parseInt(precio).toLocaleString("es-AR")}`
+  useEffect(() => {
+    loadPrimaryImage()
+  }, [instrumento.id])
+
+  const loadPrimaryImage = async () => {
+    try {
+      setLoadingImage(true)
+      const response = await imageService.getPrimary(instrumento.id)
+      if (response.success && response.data) {
+        setPrimaryImage(response.data)
+      }
+    } catch (error) {
+      console.log(`No se encontró imagen principal para instrumento ${instrumento.id}`)
+    } finally {
+      setLoadingImage(false)
+    }
   }
 
-  const formatearEnvio = (costoenvio: string) => {
-    if (costoenvio === "G") {
+  const formatearPrecio = (precio: number) => {
+    return `$${precio.toLocaleString("es-AR")}`
+  }
+
+  const formatearEnvio = (costoEnvio: string) => {
+    if (costoEnvio === "G") {
       return (
         <div className="envio-gratis">
           <img src="/icons/truck.svg" alt="Envío gratis" className="camion-icon" />
@@ -26,58 +48,53 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
         </div>
       )
     }
-    return <span className="envio-pago">Envío: ${costoenvio}</span>
+    if (costoEnvio === "P") {
+      return <span className="envio-pago">Envío con costo</span>
+    }
+    return <span className="envio-pago">Envío: ${costoEnvio}</span>
   }
 
-  // Obtener imagen principal (nueva lógica con fallback)
-  const getMainImage = () => {
-    // Prioridad 1: main_image de la nueva estructura
-    if (instrumento.main_image) {
-      return {
-        src: instrumento.main_image.url,
-        alt: instrumento.main_image.alt_text || instrumento.instrumento,
-      }
+  const getImageSrc = () => {
+    if (imageError || loadingImage) {
+      return "/icons/no-image.svg"
     }
 
-    // Prioridad 2: primera imagen de la galería
-    if (instrumento.images && instrumento.images.length > 0) {
-      const firstImage = instrumento.images[0]
-      return {
-        src: firstImage.url,
-        alt: firstImage.alt_text || instrumento.instrumento,
-      }
+    // Prioridad 1: Imagen principal del nuevo sistema
+    if (primaryImage && primaryImage.imageUrl) {
+      return imageService.getImageUrl(primaryImage.imageUrl)
     }
 
-    // Fallback: estructura antigua (compatibilidad)
-    if (instrumento.imagen) {
-      return {
-        src: `http://localhost:3001/images/${instrumento.imagen}`,
-        alt: instrumento.instrumento,
-      }
+    // Prioridad 2: Campo imagen legacy (si existe)
+    if (instrumento.imagen && instrumento.imagen.trim() !== "") {
+      return imageService.getImageUrl(instrumento.imagen)
     }
 
-    // Sin imagen
-    return {
-      src: "/placeholder.svg?height=220&width=320",
-      alt: `${instrumento.instrumento} - Sin imagen`,
-    }
+    return "/icons/no-image.svg"
   }
-
-  const mainImage = getMainImage()
 
   const handleCardClick = () => {
     navigate(`/instrumento/${instrumento.id}`)
   }
 
   const handleButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation() // Evita que se dispare el click de la tarjeta
+    e.stopPropagation()
     navigate(`/instrumento/${instrumento.id}`)
+  }
+
+  const handleImageError = () => {
+    console.log(`Error cargando imagen para instrumento ${instrumento.id}`)
+    setImageError(true)
   }
 
   return (
     <div className="instrumento-card" onClick={handleCardClick}>
       <div className="imagen-container">
-        <img src={mainImage.src || "/placeholder.svg"} alt={mainImage.alt} className="instrumento-imagen" />
+        <img
+          src={getImageSrc() || "/placeholder.svg"}
+          alt={primaryImage?.altText || instrumento.instrumento}
+          className="instrumento-imagen"
+          onError={handleImageError}
+        />
       </div>
 
       <div className="instrumento-info">
@@ -87,10 +104,10 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
           <span className="precio">{formatearPrecio(instrumento.precio)}</span>
         </div>
 
-        <div className="envio-container">{formatearEnvio(instrumento.costoenvio)}</div>
+        <div className="envio-container">{formatearEnvio(instrumento.costoEnvio)}</div>
 
         <div className="vendidos-container">
-          <span className="vendidos">{instrumento.cantidadvendida} vendidos</span>
+          <span className="vendidos">{instrumento.cantidadVendida} vendidos</span>
         </div>
 
         <button className="btn-detalle" onClick={handleButtonClick}>
