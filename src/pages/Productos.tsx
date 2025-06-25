@@ -2,34 +2,67 @@
 
 import { useState, useEffect } from "react"
 import { InstrumentoCard } from "../components/InstrumentoCard"
+import { ErrorScreen } from "../components/ErrorScreen"
 import type { Instrumento } from "../types/Instrumento"
 import "./Productos.css"
 
 export const Productos = () => {
   const [instrumentos, setInstrumentos] = useState<Instrumento[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isRetrying, setIsRetrying] = useState(false)
+
+  const fetchInstrumentos = async () => {
+    try {
+      setError(null)
+      const response = await fetch("http://localhost:3001/api/instrumentos")
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      setInstrumentos(data)
+    } catch (error) {
+      console.error("Error conectando al backend:", error)
+      setError(error instanceof Error ? error.message : "Error desconocido")
+      setInstrumentos([])
+    } finally {
+      setLoading(false)
+      setIsRetrying(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchInstrumentos = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/api/instrumentos")
-        if (!response.ok) {
-          throw new Error("Error al cargar los instrumentos")
-        }
-        const data = await response.json()
-        setInstrumentos(data)
-      } catch (error) {
-        console.error("Error:", error)
-        // Fallback a datos locales en caso de error
-        const localData = await import("../data/instrumentos.json")
-        setInstrumentos(localData.instrumentos)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchInstrumentos()
   }, [])
+
+  const handleRetry = () => {
+    setIsRetrying(true)
+    setLoading(true)
+    fetchInstrumentos()
+  }
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Cargando instrumentos...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <ErrorScreen
+        title="Error al cargar productos"
+        message="No se pudieron cargar los productos desde el servidor."
+        details={error}
+        onRetry={handleRetry}
+        isRetrying={isRetrying}
+      />
+    )
+  }
 
   return (
     <div className="productos-container">
@@ -39,15 +72,11 @@ export const Productos = () => {
       </header>
 
       <main className="productos-content">
-        {loading ? (
-          <div className="loading">Cargando instrumentos...</div>
-        ) : (
-          <div className="instrumentos-grid">
-            {instrumentos.map((instrumento) => (
-              <InstrumentoCard key={instrumento.id} instrumento={instrumento} />
-            ))}
-          </div>
-        )}
+        <div className="instrumentos-grid">
+          {instrumentos.map((instrumento) => (
+            <InstrumentoCard key={instrumento.id} instrumento={instrumento} />
+          ))}
+        </div>
       </main>
     </div>
   )

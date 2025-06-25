@@ -15,7 +15,7 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
     if (costoEnvio === "G") {
       return (
         <div className="envio-gratis">
-          <img src="/img/camion.png" alt="Envío gratis" className="camion-icon" />
+          <img src="http://localhost:3001/images/camion.png" alt="Envío gratis" className="camion-icon" />
           <span>Envío gratis a todo el país</span>
         </div>
       )
@@ -26,7 +26,11 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
   return (
     <div className="instrumento-card">
       <div className="imagen-container">
-        <img src={`/img/${instrumento.imagen}`} alt={instrumento.instrumento} className="instrumento-imagen" />
+        <img
+          src={`http://localhost:3001/images/${instrumento.imagen}`}
+          alt={instrumento.instrumento}
+          className="instrumento-imagen"
+        />
       </div>
 
       <div className="instrumento-info">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
+import { ErrorScreen } from "../components/ErrorScreen"
 import type { Instrumento } from "../types/Instrumento"
 import "./DetalleInstrumento.css"
 
@@ -10,38 +11,41 @@ export const DetalleInstrumento = () => {
   const [instrumento, setInstrumento] = useState<Instrumento | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isRetrying, setIsRetrying] = useState(false)
+
+  const fetchInstrumento = async () => {
+    try {
+      setError(null)
+      const response = await fetch(`http://localhost:3001/api/instrumentos/${id}`)
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Instrumento no encontrado")
+        }
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      setInstrumento(data)
+    } catch (error) {
+      console.error("Error conectando al backend:", error)
+      setError(error instanceof Error ? error.message : "Error desconocido")
+      setInstrumento(null)
+    } finally {
+      setLoading(false)
+      setIsRetrying(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchInstrumento = async () => {
-      try {
-        const response = await fetch(`http://localhost:3001/api/instrumentos/${id}`)
-        if (!response.ok) {
-          throw new Error("Error al cargar el instrumento")
-        }
-        const data = await response.json()
-        setInstrumento(data)
-      } catch (error) {
-        console.error("Error:", error)
-        setError("No se pudo cargar la información del instrumento")
-
-        // Fallback a datos locales en caso de error
-        try {
-          const localData = await import("../data/instrumentos.json")
-          const foundInstrumento = localData.instrumentos.find((item: Instrumento) => item.id === id)
-          if (foundInstrumento) {
-            setInstrumento(foundInstrumento)
-            setError(null)
-          }
-        } catch (localError) {
-          console.error("Error al cargar datos locales:", localError)
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchInstrumento()
   }, [id])
+
+  const handleRetry = () => {
+    setIsRetrying(true)
+    setLoading(true)
+    fetchInstrumento()
+  }
 
   const formatearPrecio = (precio: string) => {
     return `$${Number.parseInt(precio).toLocaleString("es-AR")}`
@@ -51,7 +55,7 @@ export const DetalleInstrumento = () => {
     if (costoEnvio === "G") {
       return (
         <div className="envio-gratis-detalle">
-          <img src="/img/camion.png" alt="Envío gratis" className="camion-icon-detalle" />
+          <img src="http://localhost:3001/images/camion.png" alt="Envío gratis" className="camion-icon-detalle" />
           <span>Envío gratis a todo el país</span>
         </div>
       )
@@ -68,15 +72,26 @@ export const DetalleInstrumento = () => {
     )
   }
 
-  if (error || !instrumento) {
+  if (error) {
     return (
-      <div className="error-container">
-        <h2>Error</h2>
-        <p>{error || "No se encontró el instrumento"}</p>
-        <Link to="/productos" className="btn btn-primary">
-          Volver a Productos
-        </Link>
-      </div>
+      <ErrorScreen
+        title="Error al cargar instrumento"
+        message="No se pudo cargar la información del instrumento."
+        details={error}
+        onRetry={handleRetry}
+        isRetrying={isRetrying}
+      />
+    )
+  }
+
+  if (!instrumento) {
+    return (
+      <ErrorScreen
+        title="Instrumento no encontrado"
+        message="El instrumento que buscas no existe o ha sido eliminado."
+        showHomeButton={true}
+        onRetry={undefined}
+      />
     )
   }
 
@@ -92,7 +107,11 @@ export const DetalleInstrumento = () => {
 
         <div className="detalle-grid">
           <div className="detalle-imagen-container">
-            <img src={`/img/${instrumento.imagen}`} alt={instrumento.instrumento} className="detalle-imagen" />
+            <img
+              src={`http://localhost:3001/images/${instrumento.imagen}`}
+              alt={instrumento.instrumento}
+              className="detalle-imagen"
+            />
           </div>
 
           <div className="detalle-info">

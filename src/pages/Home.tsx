@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { InstrumentoCard } from "../components/InstrumentoCard"
+import { ErrorScreen } from "../components/ErrorScreen"
 import type { Instrumento } from "../types/Instrumento"
 import "./Home.css"
 
@@ -9,37 +10,49 @@ export const Home = () => {
   const [instrumentos, setInstrumentos] = useState<Instrumento[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isRetrying, setIsRetrying] = useState(false)
+
+  const fetchInstrumentos = async () => {
+    try {
+      setError(null)
+      const response = await fetch("http://localhost:3001/api/instrumentos")
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      setInstrumentos(data)
+    } catch (error) {
+      console.error("Error conectando al backend:", error)
+      setError(error instanceof Error ? error.message : "Error desconocido")
+      setInstrumentos([])
+    } finally {
+      setLoading(false)
+      setIsRetrying(false)
+    }
+  }
 
   useEffect(() => {
-    // En un entorno real, esto sería una llamada a la API
-    const fetchInstrumentos = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/api/instrumentos")
-        if (!response.ok) {
-          throw new Error("Error al cargar los instrumentos")
-        }
-        const data = await response.json()
-        setInstrumentos(data)
-      } catch (error) {
-        console.error("Error:", error)
-        // Fallback a datos locales en caso de error
-        const localData = await import("../data/instrumentos.json")
-        setInstrumentos(localData.instrumentos)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchInstrumentos()
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
-    }, 5000)
+    if (instrumentos.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
+      }, 5000)
 
-    return () => clearInterval(interval)
-  }, [])
+      return () => clearInterval(interval)
+    }
+  }, [instrumentos])
+
+  const handleRetry = () => {
+    setIsRetrying(true)
+    setLoading(true)
+    fetchInstrumentos()
+  }
 
   const handleSlideChange = (index: number) => {
     setCurrentSlide(index)
@@ -51,6 +64,28 @@ export const Home = () => {
 
   const handleNextSlide = () => {
     setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
+  }
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Cargando instrumentos...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <ErrorScreen
+        title="Error al cargar instrumentos"
+        message="No se pudieron cargar los instrumentos desde el servidor."
+        details={error}
+        onRetry={handleRetry}
+        isRetrying={isRetrying}
+        showHomeButton={false}
+      />
+    )
   }
 
   // Seleccionar 3 instrumentos destacados para el slider
@@ -67,38 +102,44 @@ export const Home = () => {
 
       <main className="main-content">
         {/* Slider */}
-        <div className="slider-container">
-          <div className="slider" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-            {destacados.map((instrumento) => (
-              <div key={instrumento.id} className="slide">
-                <img src={`/img/${instrumento.imagen}`} alt={instrumento.instrumento} className="slide-image" />
-                <div className="slide-content">
-                  <h3>{instrumento.instrumento}</h3>
-                  <p>
-                    {instrumento.marca} - {instrumento.modelo}
-                  </p>
+        {destacados.length > 0 && (
+          <div className="slider-container">
+            <div className="slider" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+              {destacados.map((instrumento) => (
+                <div key={instrumento.id} className="slide">
+                  <img
+                    src={`http://localhost:3001/images/${instrumento.imagen}`}
+                    alt={instrumento.instrumento}
+                    className="slide-image"
+                  />
+                  <div className="slide-content">
+                    <h3>{instrumento.instrumento}</h3>
+                    <p>
+                      {instrumento.marca} - {instrumento.modelo}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div className="slider-controls">
-            {[0, 1, 2].map((index) => (
-              <div
-                key={index}
-                className={`slider-dot ${currentSlide === index ? "active" : ""}`}
-                onClick={() => handleSlideChange(index)}
-              />
-            ))}
-          </div>
+            <div className="slider-controls">
+              {[0, 1, 2].map((index) => (
+                <div
+                  key={index}
+                  className={`slider-dot ${currentSlide === index ? "active" : ""}`}
+                  onClick={() => handleSlideChange(index)}
+                />
+              ))}
+            </div>
 
-          <div className="slider-arrow left" onClick={handlePrevSlide}>
-            &#10094;
+            <div className="slider-arrow left" onClick={handlePrevSlide}>
+              &#10094;
+            </div>
+            <div className="slider-arrow right" onClick={handleNextSlide}>
+              &#10095;
+            </div>
           </div>
-          <div className="slider-arrow right" onClick={handleNextSlide}>
-            &#10095;
-          </div>
-        </div>
+        )}
 
         {/* About section */}
         <div className="about-section">
@@ -114,15 +155,11 @@ export const Home = () => {
         {/* Featured products */}
         <h2 className="section-title">Instrumentos Destacados</h2>
 
-        {loading ? (
-          <div className="loading">Cargando instrumentos...</div>
-        ) : (
-          <div className="instrumentos-grid">
-            {instrumentos.slice(0, 4).map((instrumento) => (
-              <InstrumentoCard key={instrumento.id} instrumento={instrumento} />
-            ))}
-          </div>
-        )}
+        <div className="instrumentos-grid">
+          {instrumentos.slice(0, 4).map((instrumento) => (
+            <InstrumentoCard key={instrumento.id} instrumento={instrumento} />
+          ))}
+        </div>
       </main>
     </div>
   )
