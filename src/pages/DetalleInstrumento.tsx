@@ -51,16 +51,48 @@ export const DetalleInstrumento = () => {
     return `$${Number.parseInt(precio).toLocaleString("es-AR")}`
   }
 
-  const formatearEnvio = (costoEnvio: string) => {
-    if (costoEnvio === "G") {
+  const formatearEnvio = (costoenvio: string) => {
+    if (costoenvio === "G") {
       return (
         <div className="envio-gratis-detalle">
-          <img src="http://localhost:3001/images/camion.png" alt="Envío gratis" className="camion-icon-detalle" />
+          <img src="/icons/truck.svg" alt="Envío gratis" className="camion-icon-detalle" />
           <span>Envío gratis a todo el país</span>
         </div>
       )
     }
-    return <span className="envio-pago-detalle">Costo de envío: ${costoEnvio}</span>
+    return <span className="envio-pago-detalle">Costo de envío: ${costoenvio}</span>
+  }
+
+  // Obtener imagen principal (nueva lógica con fallback)
+  const getMainImage = () => {
+    if (!instrumento) return null
+
+    // Prioridad 1: main_image de la nueva estructura
+    if (instrumento.main_image) {
+      return {
+        src: instrumento.main_image.url,
+        alt: instrumento.main_image.alt_text || instrumento.instrumento,
+      }
+    }
+
+    // Prioridad 2: primera imagen de la galería
+    if (instrumento.images && instrumento.images.length > 0) {
+      const firstImage = instrumento.images[0]
+      return {
+        src: firstImage.url,
+        alt: firstImage.alt_text || instrumento.instrumento,
+      }
+    }
+
+    // Fallback: estructura antigua (compatibilidad)
+    if (instrumento.imagen) {
+      return {
+        src: `http://localhost:3001/images/${instrumento.imagen}`,
+        alt: instrumento.instrumento,
+      }
+    }
+
+    return null
   }
 
   if (loading) {
@@ -95,6 +127,8 @@ export const DetalleInstrumento = () => {
     )
   }
 
+  const mainImage = getMainImage()
+
   return (
     <div className="detalle-container">
       <div className="detalle-content">
@@ -107,11 +141,13 @@ export const DetalleInstrumento = () => {
 
         <div className="detalle-grid">
           <div className="detalle-imagen-container">
-            <img
-              src={`http://localhost:3001/images/${instrumento.imagen}`}
-              alt={instrumento.instrumento}
-              className="detalle-imagen"
-            />
+            {mainImage ? (
+              <img src={mainImage.src || "/placeholder.svg"} alt={mainImage.alt} className="detalle-imagen" />
+            ) : (
+              <div className="sin-imagen">
+                <span>Sin imagen disponible</span>
+              </div>
+            )}
           </div>
 
           <div className="detalle-info">
@@ -119,10 +155,10 @@ export const DetalleInstrumento = () => {
               <span className="detalle-precio">{formatearPrecio(instrumento.precio)}</span>
             </div>
 
-            <div className="detalle-envio-container">{formatearEnvio(instrumento.costoEnvio)}</div>
+            <div className="detalle-envio-container">{formatearEnvio(instrumento.costoenvio)}</div>
 
             <div className="detalle-vendidos-container">
-              <span className="detalle-vendidos">{instrumento.cantidadVendida} vendidos</span>
+              <span className="detalle-vendidos">{instrumento.cantidadvendida} vendidos</span>
             </div>
 
             <div className="detalle-specs">

@@ -11,26 +11,58 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
     return `$${Number.parseInt(precio).toLocaleString("es-AR")}`
   }
 
-  const formatearEnvio = (costoEnvio: string) => {
-    if (costoEnvio === "G") {
+  const formatearEnvio = (costoenvio: string) => {
+    if (costoenvio === "G") {
       return (
         <div className="envio-gratis">
-          <img src="http://localhost:3001/images/camion.png" alt="Envío gratis" className="camion-icon" />
+          <img src="/icons/truck.svg" alt="Envío gratis" className="camion-icon" />
           <span>Envío gratis a todo el país</span>
         </div>
       )
     }
-    return <span className="envio-pago">Envío: ${costoEnvio}</span>
+    return <span className="envio-pago">Envío: ${costoenvio}</span>
   }
+
+  // Obtener imagen principal (nueva lógica con fallback)
+  const getMainImage = () => {
+    // Prioridad 1: main_image de la nueva estructura
+    if (instrumento.main_image) {
+      return {
+        src: instrumento.main_image.url,
+        alt: instrumento.main_image.alt_text || instrumento.instrumento,
+      }
+    }
+
+    // Prioridad 2: primera imagen de la galería
+    if (instrumento.images && instrumento.images.length > 0) {
+      const firstImage = instrumento.images[0]
+      return {
+        src: firstImage.url,
+        alt: firstImage.alt_text || instrumento.instrumento,
+      }
+    }
+
+    // Fallback: estructura antigua (compatibilidad)
+    if (instrumento.imagen) {
+      return {
+        src: `http://localhost:3001/images/${instrumento.imagen}`,
+        alt: instrumento.instrumento,
+      }
+    }
+
+    // Sin imagen
+    return {
+      src: "/placeholder.svg?height=220&width=320",
+      alt: `${instrumento.instrumento} - Sin imagen`,
+    }
+  }
+
+  const mainImage = getMainImage()
 
   return (
     <div className="instrumento-card">
       <div className="imagen-container">
-        <img
-          src={`http://localhost:3001/images/${instrumento.imagen}`}
-          alt={instrumento.instrumento}
-          className="instrumento-imagen"
-        />
+        <img src={mainImage.src || "/placeholder.svg"} alt={mainImage.alt} className="instrumento-imagen" />
       </div>
 
       <div className="instrumento-info">
@@ -40,10 +72,10 @@ export const InstrumentoCard = ({ instrumento }: InstrumentoCardProps) => {
           <span className="precio">{formatearPrecio(instrumento.precio)}</span>
         </div>
 
-        <div className="envio-container">{formatearEnvio(instrumento.costoEnvio)}</div>
+        <div className="envio-container">{formatearEnvio(instrumento.costoenvio)}</div>
 
         <div className="vendidos-container">
-          <span className="vendidos">{instrumento.cantidadVendida} vendidos</span>
+          <span className="vendidos">{instrumento.cantidadvendida} vendidos</span>
         </div>
 
         <Link to={`/instrumento/${instrumento.id}`} className="btn-detalle">
