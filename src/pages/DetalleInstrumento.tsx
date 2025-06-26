@@ -1,119 +1,139 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import type { Instrumento, Categoria, ProductImage } from "../types/Instrumento"
-import { instrumentoService, categoriaService, imageService } from "../services/api"
-import "./DetalleInstrumento.css"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import type {
+  Instrumento,
+  Categoria,
+  ProductImage,
+} from "../types/Instrumento";
+import {
+  instrumentoService,
+  categoriaService,
+  imageService,
+} from "../services/api";
+import "./DetalleInstrumento.css";
 
 export const DetalleInstrumento: React.FC = () => {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const [instrumento, setInstrumento] = useState<Instrumento | null>(null)
-  const [categoria, setCategoria] = useState<Categoria | null>(null)
-  const [images, setImages] = useState<ProductImage[]>([])
-  const [primaryImage, setPrimaryImage] = useState<ProductImage | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [imageError, setImageError] = useState(false)
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [instrumento, setInstrumento] = useState<Instrumento | null>(null);
+  const [categoria, setCategoria] = useState<Categoria | null>(null);
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [primaryImage, setPrimaryImage] = useState<ProductImage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (id) {
-      fetchInstrumento(Number(id))
+      fetchInstrumento(Number(id));
     }
-  }, [id])
+  }, [id]);
 
   const fetchInstrumento = async (instrumentoId: number) => {
     try {
-      setLoading(true)
-      const response = await instrumentoService.getById(instrumentoId)
-      console.log("Respuesta instrumento:", response)
+      setLoading(true);
+      const response = await instrumentoService.getById(instrumentoId);
+      console.log("Respuesta instrumento:", response);
 
       if (response.success && response.data) {
-        const instrumentoData = response.data
-        setInstrumento(instrumentoData)
+        const instrumentoData = response.data;
+        setInstrumento(instrumentoData);
 
         // Cargar categoría si existe
         if (instrumentoData.idCategoria) {
-          await fetchCategoria(instrumentoData.idCategoria)
+          await fetchCategoria(instrumentoData.idCategoria);
         }
 
         // Cargar imágenes
-        await fetchImages(instrumentoId)
+        await fetchImages(instrumentoId);
       } else {
-        setError("Instrumento no encontrado")
+        setError("Instrumento no encontrado");
       }
     } catch (error) {
-      console.error("Error conectando al backend:", error)
-      setError("Error al cargar el instrumento. Verifica que el backend esté funcionando.")
+      console.error("Error conectando al backend:", error);
+      setError(
+        "Error al cargar el instrumento. Verifica que el backend esté funcionando.",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchCategoria = async (categoriaId: number) => {
     try {
-      const response = await categoriaService.getById(categoriaId)
+      const response = await categoriaService.getById(categoriaId);
       if (response.success && response.data) {
-        setCategoria(response.data)
+        setCategoria(response.data);
       }
     } catch (error) {
-      console.error("Error al cargar categoría:", error)
+      console.error("Error al cargar categoría:", error);
     }
-  }
+  };
 
   const fetchImages = async (instrumentoId: number) => {
     try {
       // Obtener todas las imágenes
-      const imagesResponse = await imageService.getByInstrumento(instrumentoId)
+      const imagesResponse = await imageService.getByInstrumento(instrumentoId);
       if (imagesResponse.success && imagesResponse.data) {
-        setImages(imagesResponse.data)
+        setImages(imagesResponse.data);
       }
 
       // Obtener imagen principal
       try {
-        const primaryResponse = await imageService.getPrimary(instrumentoId)
+        const primaryResponse = await imageService.getPrimary(instrumentoId);
         if (primaryResponse.success && primaryResponse.data) {
-          setPrimaryImage(primaryResponse.data)
+          setPrimaryImage(primaryResponse.data);
+        } else {
+          // No hay imagen principal configurada, esto es normal
+          console.log(
+            `No hay imagen principal configurada para instrumento ${instrumentoId}`,
+          );
         }
       } catch (error) {
-        console.log("No hay imagen principal para este instrumento")
+        // Error de conexión, no mostrar error crítico
+        console.log(
+          `No se pudo cargar imagen principal para instrumento ${instrumentoId}`,
+        );
       }
     } catch (error) {
-      console.error("Error al cargar imágenes:", error)
+      console.error("Error al cargar imágenes:", error);
     }
-  }
+  };
 
   const getImageUrl = (): string => {
-    if (!instrumento) return "/icons/no-image.svg"
+    if (!instrumento) return "/icons/no-image.svg";
 
+    // Si hay error de carga, mostrar imagen por defecto
     if (imageError) {
-      return "/icons/no-image.svg"
+      return "/icons/no-image.svg";
     }
 
     // Prioridad 1: Imagen principal del nuevo sistema
     if (primaryImage && primaryImage.imageUrl) {
-      return imageService.getImageUrl(primaryImage.imageUrl)
+      return imageService.getImageUrl(primaryImage.imageUrl);
     }
 
-    // Prioridad 2: Primera imagen disponible
-    if (images.length > 0) {
-      return imageService.getImageUrl(images[0].imageUrl)
+    // Prioridad 2: Primera imagen disponible del sistema nuevo
+    if (images.length > 0 && images[0].imageUrl) {
+      return imageService.getImageUrl(images[0].imageUrl);
     }
 
     // Prioridad 3: Campo imagen legacy
     if (instrumento.imagen && instrumento.imagen.trim() !== "") {
-      return imageService.getImageUrl(instrumento.imagen)
+      return imageService.getImageUrl(instrumento.imagen);
     }
 
-    return "/icons/no-image.svg"
-  }
+    // Fallback: imagen por defecto
+    return "/icons/no-image.svg";
+  };
 
   const handleImageError = () => {
-    console.log(`Error cargando imagen en detalle: ${instrumento?.id}`)
-    setImageError(true)
-  }
+    console.log(`Error cargando imagen en detalle: ${instrumento?.id}`);
+    setImageError(true);
+  };
 
   if (loading) {
     return (
@@ -123,7 +143,7 @@ export const DetalleInstrumento: React.FC = () => {
           <p>Cargando instrumento...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !instrumento) {
@@ -133,20 +153,26 @@ export const DetalleInstrumento: React.FC = () => {
           <div className="error-container">
             <h2>⚠️ Error</h2>
             <p>{error || "Instrumento no encontrado"}</p>
-            <button onClick={() => navigate("/productos")} className="btn btn-primary">
+            <button
+              onClick={() => navigate("/productos")}
+              className="btn btn-primary"
+            >
               ← Volver a Productos
             </button>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="detalle-container">
       <div className="detalle-content">
         <div className="detalle-header">
-          <button onClick={() => navigate("/productos")} className="volver-link">
+          <button
+            onClick={() => navigate("/productos")}
+            className="volver-link"
+          >
             Volver a Productos
           </button>
           <h1 className="detalle-titulo">{instrumento.instrumento}</h1>
@@ -164,18 +190,27 @@ export const DetalleInstrumento: React.FC = () => {
 
           <div className="detalle-info">
             <div className="detalle-precio-container">
-              <div className="detalle-precio">${instrumento.precio?.toLocaleString()}</div>
+              <div className="detalle-precio">
+                ${instrumento.precio?.toLocaleString()}
+              </div>
             </div>
 
             <div className="detalle-envio-container">
               {instrumento.costoEnvio === "G" ? (
                 <div className="envio-gratis-detalle">
-                  <img src="/icons/truck.svg" alt="Envío gratis" className="camion-icon-detalle" />
+                  <img
+                    src="/icons/truck.svg"
+                    alt="Envío gratis"
+                    className="camion-icon-detalle"
+                  />
                   <span>Envío gratis a todo el país</span>
                 </div>
               ) : (
                 <div className="envio-pago-detalle">
-                  Envío: {instrumento.costoEnvio === "P" ? "Con costo" : `$${instrumento.costoEnvio}`}
+                  Envío:{" "}
+                  {instrumento.costoEnvio === "P"
+                    ? "Con costo"
+                    : `$${instrumento.costoEnvio}`}
                 </div>
               )}
             </div>
@@ -210,14 +245,23 @@ export const DetalleInstrumento: React.FC = () => {
             )}
 
             <div className="detalle-actions">
-              <button className="btn-comprar">🛒 Agregar al Carrito</button>
-              <button className="btn-favorito">❤️</button>
+              <button className="btn-comprar">
+                <img src="/icons/cart.svg" alt="Carrito" className="btn-icon" />
+                Agregar al Carrito
+              </button>
+              <button className="btn-favorito">
+                <img
+                  src="/icons/heart.svg"
+                  alt="Favorito"
+                  className="btn-icon"
+                />
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DetalleInstrumento
+export default DetalleInstrumento;

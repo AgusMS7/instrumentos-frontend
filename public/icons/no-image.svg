@@ -1,13 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 25 25" enable-background="new 0 0 25 25" xml:space="preserve">
-<path id="No_View" fill="#0E1D25" d="M1.85,23.85l-0.71-0.71l4.22-4.22c-3.76-2.44-5.3-6.19-5.33-6.24c-0.05-0.12-0.05-0.25,0-0.37
-	C0.07,12.23,3.47,4,12.5,4c2.5,0,4.57,0.63,6.25,1.54l4.4-4.4l0.71,0.71l-4.22,4.22c3.76,2.44,5.3,6.19,5.33,6.24
-	c0.05,0.12,0.05,0.25,0,0.37C24.93,12.77,21.53,21,12.5,21c-2.5,0-4.57-0.63-6.25-1.54L1.85,23.85z M6.97,18.73
-	C8.48,19.49,10.31,20,12.5,20c7.71,0,10.92-6.3,11.46-7.5c-0.35-0.79-1.85-3.77-5.02-5.73l-2.86,2.86c0.65,0.78,1.04,1.78,1.04,2.87
-	c0,2.48-2.02,4.5-4.5,4.5c-1.09,0-2.09-0.39-2.87-1.04L6.97,18.73z M1.04,12.5c0.35,0.79,1.85,3.77,5.02,5.73l2.98-2.98
-	c-0.59-0.76-0.94-1.71-0.94-2.74c0-2.48,2.02-4.5,4.5-4.5c1.03,0,1.98,0.35,2.74,0.94l2.67-2.67C16.52,5.51,14.69,5,12.5,5
-	C4.79,5,1.58,11.3,1.04,12.5z M10.45,15.25c0.6,0.47,1.35,0.75,2.16,0.75c1.93,0,3.5-1.57,3.5-3.5c0-0.81-0.28-1.56-0.75-2.16
-	L10.45,15.25z M12.61,9c-1.93,0-3.5,1.57-3.5,3.5c0,0.76,0.24,1.46,0.65,2.03l4.88-4.88C14.07,9.24,13.37,9,12.61,9z"/>
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff7f32;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#b87333;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" rx="12" fill="url(#bgGradient)" stroke="#333" stroke-width="2"/>
+  
+  <!-- Music note icon -->
+  <g transform="translate(100, 100)">
+    <!-- Musical note stem -->
+    <rect x="22" y="-35" width="3" height="50" fill="url(#iconGradient)" rx="1.5"/>
+    
+    <!-- Musical note head -->
+    <ellipse cx="18" cy="15" rx="8" ry="5" fill="url(#iconGradient)" transform="rotate(-15)"/>
+    
+    <!-- Musical staff lines -->
+    <line x1="-35" y1="-20" x2="35" y2="-20" stroke="url(#iconGradient)" stroke-width="1.5" opacity="0.6"/>
+    <line x1="-35" y1="-10" x2="35" y2="-10" stroke="url(#iconGradient)" stroke-width="1.5" opacity="0.6"/>
+    <line x1="-35" y1="0" x2="35" y2="0" stroke="url(#iconGradient)" stroke-width="1.5" opacity="0.6"/>
+    <line x1="-35" y1="10" x2="35" y2="10" stroke="url(#iconGradient)" stroke-width="1.5" opacity="0.6"/>
+    <line x1="-35" y1="20" x2="35" y2="20" stroke="url(#iconGradient)" stroke-width="1.5" opacity="0.6"/>
+  </g>
+  
+  <!-- Subtle text -->
+  <text x="100" y="160" text-anchor="middle" fill="#666" font-family="Arial, sans-serif" font-size="12" opacity="0.7">
+    Sin imagen
+  </text>
 </svg>

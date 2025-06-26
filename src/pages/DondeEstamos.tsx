@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import "./DondeEstamos.css"
+import { useEffect, useRef } from "react";
+import "./DondeEstamos.css";
 
 export const DondeEstamos = () => {
-  const mapRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Esta función se ejecutaría si tuviéramos acceso a la API de Google Maps
@@ -13,10 +13,10 @@ export const DondeEstamos = () => {
       if (mapRef.current) {
         // Aquí iría la lógica para cargar el mapa con la API de Google Maps
       }
-    }
+    };
 
-    loadMap()
-  }, [])
+    loadMap();
+  }, []);
 
   return (
     <div className="donde-estamos-container">
@@ -43,7 +43,9 @@ export const DondeEstamos = () => {
           <h2>Información de Contacto</h2>
 
           <div className="info-item">
-            <div className="info-icon">📍</div>
+            <div className="info-icon">
+              <img src="/icons/location.svg" alt="Ubicación" />
+            </div>
             <div className="info-text">
               <h3>Dirección</h3>
               <p>Av. Las Heras y Av. San Martín, Ciudad de Mendoza</p>
@@ -51,7 +53,9 @@ export const DondeEstamos = () => {
           </div>
 
           <div className="info-item">
-            <div className="info-icon">📞</div>
+            <div className="info-icon">
+              <img src="/icons/phone.svg" alt="Teléfono" />
+            </div>
             <div className="info-text">
               <h3>Teléfono</h3>
               <p>(+54) 261-123-4567</p>
@@ -59,7 +63,9 @@ export const DondeEstamos = () => {
           </div>
 
           <div className="info-item">
-            <div className="info-icon">✉️</div>
+            <div className="info-icon">
+              <img src="/icons/email.svg" alt="Email" />
+            </div>
             <div className="info-text">
               <h3>Email</h3>
               <p>contacto@symphoniac.com</p>
@@ -67,7 +73,9 @@ export const DondeEstamos = () => {
           </div>
 
           <div className="info-item">
-            <div className="info-icon">🕒</div>
+            <div className="info-icon">
+              <img src="/icons/clock.svg" alt="Horarios" />
+            </div>
             <div className="info-text">
               <h3>Horarios</h3>
               <p>Lunes a Viernes: 9:00 - 18:00</p>
@@ -77,5 +85,5 @@ export const DondeEstamos = () => {
         </div>
       </main>
     </div>
-  )
-}
+  );
+};

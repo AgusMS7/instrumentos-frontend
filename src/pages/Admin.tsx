@@ -1,254 +1,296 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { InstrumentoForm } from "../components/InstrumentoForm"
-import { CategoriaAdmin } from "../components/CategoriaAdmin"
-import { ErrorScreen } from "../components/ErrorScreen"
-import type { Instrumento, Categoria, ProductImage } from "../types/Instrumento"
-import { instrumentoService, categoriaService, imageService } from "../services/api"
-import "./Admin.css"
+import { useState, useEffect } from "react";
+import { InstrumentoForm } from "../components/InstrumentoForm";
+import { CategoriaAdmin } from "../components/CategoriaAdmin";
+import { ErrorScreen } from "../components/ErrorScreen";
+import type {
+  Instrumento,
+  Categoria,
+  ProductImage,
+} from "../types/Instrumento";
+import {
+  instrumentoService,
+  categoriaService,
+  imageService,
+} from "../services/api";
+import "./Admin.css";
 
 export const Admin = () => {
-  const [instrumentos, setInstrumentos] = useState<Instrumento[]>([])
-  const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isRetrying, setIsRetrying] = useState(false)
-  const [showForm, setShowForm] = useState(false)
-  const [showCategorias, setShowCategorias] = useState(false)
-  const [editingInstrumento, setEditingInstrumento] = useState<Instrumento | null>(null)
-  const [filtroCategoria, setFiltroCategoria] = useState<string>("")
-  const [busqueda, setBusqueda] = useState("")
-  const [ordenamiento, setOrdenamiento] = useState("id")
-  const [imageErrors, setImageErrors] = useState<{ [key: string]: boolean }>({})
-  const [instrumentoImages, setInstrumentoImages] = useState<{ [key: number]: ProductImage | null }>({})
+  const [instrumentos, setInstrumentos] = useState<Instrumento[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [showCategorias, setShowCategorias] = useState(false);
+  const [editingInstrumento, setEditingInstrumento] =
+    useState<Instrumento | null>(null);
+  const [filtroCategoria, setFiltroCategoria] = useState<string>("");
+  const [busqueda, setBusqueda] = useState("");
+  const [ordenamiento, setOrdenamiento] = useState("id");
+  const [imageErrors, setImageErrors] = useState<{ [key: string]: boolean }>(
+    {},
+  );
+  const [instrumentoImages, setInstrumentoImages] = useState<{
+    [key: number]: ProductImage | null;
+  }>({});
 
   const fetchData = async () => {
     try {
-      setError(null)
+      setError(null);
       const [instrumentosRes, categoriasRes] = await Promise.all([
         instrumentoService.getAllSimple(),
         categoriaService.getAll(),
-      ])
+      ]);
 
-      console.log("Admin - Instrumentos response:", instrumentosRes)
-      console.log("Admin - Categorías response:", categoriasRes)
+      console.log("Admin - Instrumentos response:", instrumentosRes);
+      console.log("Admin - Categorías response:", categoriasRes);
 
       // Manejar respuesta de instrumentos
-      let instrumentosArray: Instrumento[] = []
+      let instrumentosArray: Instrumento[] = [];
       if (Array.isArray(instrumentosRes)) {
-        instrumentosArray = instrumentosRes
-      } else if (instrumentosRes.content && Array.isArray(instrumentosRes.content)) {
-        instrumentosArray = instrumentosRes.content
-      } else if (instrumentosRes.success && instrumentosRes.data && Array.isArray(instrumentosRes.data)) {
-        instrumentosArray = instrumentosRes.data
+        instrumentosArray = instrumentosRes;
+      } else if (
+        instrumentosRes.content &&
+        Array.isArray(instrumentosRes.content)
+      ) {
+        instrumentosArray = instrumentosRes.content;
+      } else if (
+        instrumentosRes.success &&
+        instrumentosRes.data &&
+        Array.isArray(instrumentosRes.data)
+      ) {
+        instrumentosArray = instrumentosRes.data;
       } else if (instrumentosRes.data && Array.isArray(instrumentosRes.data)) {
-        instrumentosArray = instrumentosRes.data
+        instrumentosArray = instrumentosRes.data;
       }
 
-      setInstrumentos(instrumentosArray)
+      setInstrumentos(instrumentosArray);
 
       // Cargar imágenes principales para cada instrumento
-      loadInstrumentosImages(instrumentosArray)
+      loadInstrumentosImages(instrumentosArray);
 
       // Manejar respuesta de categorías
-      let categoriasArray: Categoria[] = []
+      let categoriasArray: Categoria[] = [];
       if (Array.isArray(categoriasRes)) {
-        categoriasArray = categoriasRes
-      } else if (categoriasRes.success && categoriasRes.data && Array.isArray(categoriasRes.data)) {
-        categoriasArray = categoriasRes.data
+        categoriasArray = categoriasRes;
+      } else if (
+        categoriasRes.success &&
+        categoriasRes.data &&
+        Array.isArray(categoriasRes.data)
+      ) {
+        categoriasArray = categoriasRes.data;
       } else if (categoriasRes.data && Array.isArray(categoriasRes.data)) {
-        categoriasArray = categoriasRes.data
+        categoriasArray = categoriasRes.data;
       }
 
-      setCategorias(categoriasArray)
+      setCategorias(categoriasArray);
     } catch (error) {
-      console.error("Error conectando al backend:", error)
-      setError(error instanceof Error ? error.message : "Error desconocido")
+      console.error("Error conectando al backend:", error);
+      setError(error instanceof Error ? error.message : "Error desconocido");
     } finally {
-      setLoading(false)
-      setIsRetrying(false)
+      setLoading(false);
+      setIsRetrying(false);
     }
-  }
+  };
 
   const loadInstrumentosImages = async (instrumentosArray: Instrumento[]) => {
     const imagePromises = instrumentosArray.map(async (instrumento) => {
       try {
-        const response = await imageService.getPrimary(instrumento.id)
+        const response = await imageService.getPrimary(instrumento.id);
         if (response.success && response.data) {
-          return { id: instrumento.id, image: response.data }
+          return { id: instrumento.id, image: response.data };
+        } else {
+          // No hay imagen principal configurada, esto es normal
+          console.log(
+            `No hay imagen principal configurada para instrumento ${instrumento.id}`,
+          );
         }
       } catch (error) {
-        console.log(`No hay imagen principal para instrumento ${instrumento.id}`)
+        // Error de conexión, manejar silenciosamente
+        console.log(
+          `No se pudo cargar imagen principal para instrumento ${instrumento.id}`,
+        );
       }
-      return { id: instrumento.id, image: null }
-    })
+      return { id: instrumento.id, image: null };
+    });
 
-    const results = await Promise.all(imagePromises)
-    const imageMap: { [key: number]: ProductImage | null } = {}
+    const results = await Promise.all(imagePromises);
+    const imageMap: { [key: number]: ProductImage | null } = {};
     results.forEach((result) => {
-      imageMap[result.id] = result.image
-    })
-    setInstrumentoImages(imageMap)
-  }
+      imageMap[result.id] = result.image;
+    });
+    setInstrumentoImages(imageMap);
+  };
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const handleRetry = () => {
-    setIsRetrying(true)
-    setLoading(true)
-    fetchData()
-  }
+    setIsRetrying(true);
+    setLoading(true);
+    fetchData();
+  };
 
   const handleCreate = () => {
-    setEditingInstrumento(null)
-    setShowForm(true)
-  }
+    setEditingInstrumento(null);
+    setShowForm(true);
+  };
 
   const handleEdit = (instrumento: Instrumento) => {
-    setEditingInstrumento(instrumento)
-    setShowForm(true)
-  }
+    setEditingInstrumento(instrumento);
+    setShowForm(true);
+  };
 
   const handleDelete = async (id: number) => {
     if (!confirm("¿Estás seguro de que quieres eliminar este instrumento?")) {
-      return
+      return;
     }
 
     try {
-      const response = await instrumentoService.delete(id)
-      console.log("Delete response:", response)
+      const response = await instrumentoService.delete(id);
+      console.log("Delete response:", response);
 
       // Manejar diferentes tipos de respuesta
       if (response.success || response.status === 200 || !response.error) {
-        setInstrumentos((prev) => prev.filter((inst) => inst.id !== id))
+        setInstrumentos((prev) => prev.filter((inst) => inst.id !== id));
       } else {
-        throw new Error(response.message || "Error al eliminar")
+        throw new Error(response.message || "Error al eliminar");
       }
     } catch (error) {
-      alert("Error al eliminar instrumento: " + error)
+      alert("Error al eliminar instrumento: " + error);
     }
-  }
+  };
 
   const handleFormSubmit = async (data: any) => {
     try {
-      let response
+      let response;
 
       if (editingInstrumento) {
-        response = await instrumentoService.update(editingInstrumento.id, data)
+        response = await instrumentoService.update(editingInstrumento.id, data);
       } else {
-        response = await instrumentoService.create(data)
+        response = await instrumentoService.create(data);
       }
 
-      console.log("Form submit response:", response)
+      console.log("Form submit response:", response);
 
       // Manejar diferentes tipos de respuesta
-      let savedInstrumento
+      let savedInstrumento;
       if (response.success && response.data) {
-        savedInstrumento = response.data
+        savedInstrumento = response.data;
       } else if (response.data) {
-        savedInstrumento = response.data
+        savedInstrumento = response.data;
       } else {
-        savedInstrumento = response
+        savedInstrumento = response;
       }
 
       if (savedInstrumento) {
         if (editingInstrumento) {
-          setInstrumentos((prev) => prev.map((inst) => (inst.id === editingInstrumento.id ? savedInstrumento : inst)))
+          setInstrumentos((prev) =>
+            prev.map((inst) =>
+              inst.id === editingInstrumento.id ? savedInstrumento : inst,
+            ),
+          );
         } else {
-          setInstrumentos((prev) => [...prev, savedInstrumento])
+          setInstrumentos((prev) => [...prev, savedInstrumento]);
         }
 
         // Refrescar la lista para mostrar las imágenes actualizadas
         setTimeout(() => {
-          fetchData()
-        }, 500)
+          fetchData();
+        }, 500);
 
-        return savedInstrumento
+        return savedInstrumento;
       } else {
-        throw new Error("No se recibió el instrumento guardado")
+        throw new Error("No se recibió el instrumento guardado");
       }
     } catch (error) {
-      console.error("Error al guardar:", error)
-      alert("Error al guardar instrumento: " + error)
-      throw error
+      console.error("Error al guardar:", error);
+      alert("Error al guardar instrumento: " + error);
+      throw error;
     }
-  }
+  };
 
   const handleFormCancel = () => {
-    setShowForm(false)
-    setEditingInstrumento(null)
+    setShowForm(false);
+    setEditingInstrumento(null);
     // Refrescar la lista cuando se cancela para mostrar cambios
-    fetchData()
-  }
+    fetchData();
+  };
 
   const handleImageError = (instrumentoId: string) => {
-    console.log(`Error cargando imagen en admin para instrumento ${instrumentoId}`)
-    setImageErrors((prev) => ({ ...prev, [instrumentoId]: true }))
-  }
+    console.log(
+      `Error cargando imagen en admin para instrumento ${instrumentoId}`,
+    );
+    setImageErrors((prev) => ({ ...prev, [instrumentoId]: true }));
+  };
 
   const getInstrumentoImage = (instrumento: Instrumento) => {
-    const instrumentoIdStr = instrumento.id.toString()
+    const instrumentoIdStr = instrumento.id.toString();
 
     if (imageErrors[instrumentoIdStr]) {
-      return "/icons/no-image.svg"
+      return "/icons/no-image.svg";
     }
 
     // Prioridad 1: Imagen principal del nuevo sistema
-    const primaryImage = instrumentoImages[instrumento.id]
+    const primaryImage = instrumentoImages[instrumento.id];
     if (primaryImage && primaryImage.imageUrl) {
-      return imageService.getImageUrl(primaryImage.imageUrl)
+      return imageService.getImageUrl(primaryImage.imageUrl);
     }
 
     // Prioridad 2: Campo imagen legacy
     if (instrumento.imagen && instrumento.imagen.trim() !== "") {
-      return imageService.getImageUrl(instrumento.imagen)
+      return imageService.getImageUrl(instrumento.imagen);
     }
 
-    return "/icons/no-image.svg"
-  }
+    return "/icons/no-image.svg";
+  };
 
   const formatearPrecio = (precio: number) => {
-    return `$${precio.toLocaleString("es-AR")}`
-  }
+    return `$${precio.toLocaleString("es-AR")}`;
+  };
 
   const getCategoriaName = (idCategoria: number) => {
-    const categoria = categorias.find((cat) => cat.id === idCategoria)
-    return categoria ? categoria.denominacion : "Sin categoría"
-  }
+    const categoria = categorias.find((cat) => cat.id === idCategoria);
+    return categoria ? categoria.denominacion : "Sin categoría";
+  };
 
   // Filtrar y ordenar instrumentos
   const instrumentosFiltrados = instrumentos
     .filter((instrumento) => {
-      const matchCategoria = !filtroCategoria || instrumento.idCategoria === Number.parseInt(filtroCategoria)
+      const matchCategoria =
+        !filtroCategoria ||
+        instrumento.idCategoria === Number.parseInt(filtroCategoria);
       const matchBusqueda =
         !busqueda ||
-        instrumento.instrumento.toLowerCase().includes(busqueda.toLowerCase()) ||
+        instrumento.instrumento
+          .toLowerCase()
+          .includes(busqueda.toLowerCase()) ||
         instrumento.marca.toLowerCase().includes(busqueda.toLowerCase()) ||
-        instrumento.modelo.toLowerCase().includes(busqueda.toLowerCase())
+        instrumento.modelo.toLowerCase().includes(busqueda.toLowerCase());
 
-      return matchCategoria && matchBusqueda
+      return matchCategoria && matchBusqueda;
     })
     .sort((a, b) => {
       switch (ordenamiento) {
         case "id":
-          return a.id - b.id
+          return a.id - b.id;
         case "nombre":
-          return a.instrumento.localeCompare(b.instrumento)
+          return a.instrumento.localeCompare(b.instrumento);
         case "marca":
-          return a.marca.localeCompare(b.marca)
+          return a.marca.localeCompare(b.marca);
         case "precio-asc":
-          return a.precio - b.precio
+          return a.precio - b.precio;
         case "precio-desc":
-          return b.precio - a.precio
+          return b.precio - a.precio;
         case "vendidos":
-          return (b.cantidadVendida || 0) - (a.cantidadVendida || 0)
+          return (b.cantidadVendida || 0) - (a.cantidadVendida || 0);
         default:
-          return 0
+          return 0;
       }
-    })
+    });
 
   if (loading) {
     return (
@@ -256,7 +298,7 @@ export const Admin = () => {
         <div className="loading-spinner"></div>
         <p>Cargando datos...</p>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -268,7 +310,7 @@ export const Admin = () => {
         onRetry={handleRetry}
         isRetrying={isRetrying}
       />
-    )
+    );
   }
 
   if (showForm) {
@@ -279,13 +321,17 @@ export const Admin = () => {
         onSubmit={handleFormSubmit}
         onCancel={handleFormCancel}
       />
-    )
+    );
   }
 
   if (showCategorias) {
     return (
-      <CategoriaAdmin categorias={categorias} setCategorias={setCategorias} onBack={() => setShowCategorias(false)} />
-    )
+      <CategoriaAdmin
+        categorias={categorias}
+        setCategorias={setCategorias}
+        onBack={() => setShowCategorias(false)}
+      />
+    );
   }
 
   return (
@@ -294,7 +340,10 @@ export const Admin = () => {
         <div className="admin-header-content">
           <h1 className="section-title">Administración de Instrumentos</h1>
           <div className="admin-buttons">
-            <button className="btn btn-outline" onClick={() => setShowCategorias(true)}>
+            <button
+              className="btn btn-outline"
+              onClick={() => setShowCategorias(true)}
+            >
               Administrar Categorías
             </button>
             <button className="btn btn-primary" onClick={handleCreate}>
@@ -357,7 +406,8 @@ export const Admin = () => {
 
         <div className="admin-stats">
           <span>
-            Mostrando {instrumentosFiltrados.length} de {instrumentos.length} instrumentos
+            Mostrando {instrumentosFiltrados.length} de {instrumentos.length}{" "}
+            instrumentos
           </span>
         </div>
 
@@ -380,21 +430,31 @@ export const Admin = () => {
                 <tr key={instrumento.id}>
                   <td>
                     <img
-                      src={getInstrumentoImage(instrumento) || "/placeholder.svg"}
+                      src={
+                        getInstrumentoImage(instrumento) || "/placeholder.svg"
+                      }
                       alt={instrumento.instrumento}
                       className="table-image"
-                      onError={() => handleImageError(instrumento.id.toString())}
+                      onError={() =>
+                        handleImageError(instrumento.id.toString())
+                      }
                     />
                   </td>
                   <td className="table-name">{instrumento.instrumento}</td>
                   <td>{instrumento.marca}</td>
                   <td>{instrumento.modelo}</td>
                   <td>{getCategoriaName(instrumento.idCategoria || 0)}</td>
-                  <td className="table-price">{formatearPrecio(instrumento.precio)}</td>
+                  <td className="table-price">
+                    {formatearPrecio(instrumento.precio)}
+                  </td>
                   <td>{instrumento.cantidadVendida}</td>
                   <td>
                     <div className="table-actions">
-                      <button className="btn-action btn-edit" onClick={() => handleEdit(instrumento)} title="Editar">
+                      <button
+                        className="btn-action btn-edit"
+                        onClick={() => handleEdit(instrumento)}
+                        title="Editar"
+                      >
                         ✏️
                       </button>
                       <button
@@ -413,11 +473,14 @@ export const Admin = () => {
 
           {instrumentosFiltrados.length === 0 && (
             <div className="no-results">
-              <p>No se encontraron instrumentos que coincidan con los filtros aplicados.</p>
+              <p>
+                No se encontraron instrumentos que coincidan con los filtros
+                aplicados.
+              </p>
             </div>
           )}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

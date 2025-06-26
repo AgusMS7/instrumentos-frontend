@@ -1,91 +1,95 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { InstrumentoCard } from "../components/InstrumentoCard"
-import { ErrorScreen } from "../components/ErrorScreen"
-import type { Instrumento } from "../types/Instrumento"
-import { instrumentoService, imageService } from "../services/api"
-import "./Home.css"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { InstrumentoCard } from "../components/InstrumentoCard";
+import { ErrorScreen } from "../components/ErrorScreen";
+import type { Instrumento } from "../types/Instrumento";
+import { instrumentoService, imageService } from "../services/api";
+import "./Home.css";
 
 export const Home = () => {
-  const [instrumentos, setInstrumentos] = useState<Instrumento[]>([])
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isRetrying, setIsRetrying] = useState(false)
-  const navigate = useNavigate()
+  const [instrumentos, setInstrumentos] = useState<Instrumento[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const navigate = useNavigate();
 
   const fetchInstrumentos = async () => {
     try {
-      setError(null)
-      const response = await instrumentoService.getAllSimple()
-      console.log("Respuesta de API Home:", response)
+      setError(null);
+      const response = await instrumentoService.getAllSimple();
+      console.log("Respuesta de API Home:", response);
 
       // Manejar diferentes tipos de respuesta
-      let instrumentosArray: Instrumento[] = []
+      let instrumentosArray: Instrumento[] = [];
 
       if (Array.isArray(response)) {
         // Respuesta directa como array
-        instrumentosArray = response
+        instrumentosArray = response;
       } else if (response.content && Array.isArray(response.content)) {
         // Respuesta paginada
-        instrumentosArray = response.content
-      } else if (response.success && response.data && Array.isArray(response.data)) {
+        instrumentosArray = response.content;
+      } else if (
+        response.success &&
+        response.data &&
+        Array.isArray(response.data)
+      ) {
         // Respuesta con wrapper {success, message, data}
-        instrumentosArray = response.data
+        instrumentosArray = response.data;
       } else if (response.data && Array.isArray(response.data)) {
         // Respuesta con data directo
-        instrumentosArray = response.data
+        instrumentosArray = response.data;
       }
 
-      console.log("Instrumentos procesados:", instrumentosArray)
-      setInstrumentos(instrumentosArray)
+      console.log("Instrumentos procesados:", instrumentosArray);
+      setInstrumentos(instrumentosArray);
     } catch (error) {
-      console.error("Error conectando al backend:", error)
-      setError(error instanceof Error ? error.message : "Error desconocido")
-      setInstrumentos([])
+      console.error("Error conectando al backend:", error);
+      setError(error instanceof Error ? error.message : "Error desconocido");
+      setInstrumentos([]);
     } finally {
-      setLoading(false)
-      setIsRetrying(false)
+      setLoading(false);
+      setIsRetrying(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchInstrumentos()
-  }, [])
+    fetchInstrumentos();
+  }, []);
 
   useEffect(() => {
     if (instrumentos.length > 0) {
       const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
-      }, 5000)
+        setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1));
+      }, 5000);
 
-      return () => clearInterval(interval)
+      return () => clearInterval(interval);
     }
-  }, [instrumentos])
+  }, [instrumentos]);
 
   const handleRetry = () => {
-    setIsRetrying(true)
-    setLoading(true)
-    fetchInstrumentos()
-  }
+    setIsRetrying(true);
+    setLoading(true);
+    fetchInstrumentos();
+  };
 
   const handleSlideChange = (index: number) => {
-    setCurrentSlide(index)
-  }
+    setCurrentSlide(index);
+  };
 
   const handlePrevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1))
-  }
+    setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1));
+  };
 
   const handleNextSlide = () => {
-    setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
-  }
+    setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1));
+  };
 
   const handleInstrumentoClick = (instrumentoId: number) => {
-    navigate(`/instrumento/${instrumentoId}`)
-  }
+    navigate(`/instrumento/${instrumentoId}`);
+  };
 
   if (loading) {
     return (
@@ -93,7 +97,7 @@ export const Home = () => {
         <div className="loading-spinner"></div>
         <p>Cargando instrumentos...</p>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -106,10 +110,10 @@ export const Home = () => {
         isRetrying={isRetrying}
         showHomeButton={false}
       />
-    )
+    );
   }
 
-  const destacados = instrumentos.slice(0, 3)
+  const destacados = instrumentos.slice(0, 3);
 
   return (
     <div className="home-container">
@@ -123,7 +127,10 @@ export const Home = () => {
       <main className="main-content">
         {destacados.length > 0 && (
           <div className="slider-container">
-            <div className="slider" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+            <div
+              className="slider"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
               {destacados.map((instrumento, index) => (
                 <div
                   key={instrumento.id}
@@ -140,11 +147,18 @@ export const Home = () => {
                   <div className="slide-overlay" />
 
                   <img
-                    src={instrumento.imagen ? imageService.getImageUrl(instrumento.imagen) : "/icons/no-image.svg"}
+                    src={
+                      instrumento.imagen
+                        ? imageService.getImageUrl(instrumento.imagen)
+                        : "/icons/no-image.svg"
+                    }
                     alt={instrumento.instrumento}
                     className="slide-image"
                     onError={(e) => {
-                      e.currentTarget.src = "/icons/no-image.svg"
+                      console.log(
+                        `Error cargando imagen en slider para instrumento ${instrumento.id}`,
+                      );
+                      e.currentTarget.src = "/icons/no-image.svg";
                     }}
                   />
 
@@ -164,8 +178,8 @@ export const Home = () => {
                   key={index}
                   className={`slider-dot ${currentSlide === index ? "active" : ""}`}
                   onClick={(e) => {
-                    e.stopPropagation()
-                    handleSlideChange(index)
+                    e.stopPropagation();
+                    handleSlideChange(index);
                   }}
                 />
               ))}
@@ -174,8 +188,8 @@ export const Home = () => {
             <div
               className="slider-arrow left"
               onClick={(e) => {
-                e.stopPropagation()
-                handlePrevSlide()
+                e.stopPropagation();
+                handlePrevSlide();
               }}
             >
               &#10094;
@@ -183,8 +197,8 @@ export const Home = () => {
             <div
               className="slider-arrow right"
               onClick={(e) => {
-                e.stopPropagation()
-                handleNextSlide()
+                e.stopPropagation();
+                handleNextSlide();
               }}
             >
               &#10095;
@@ -195,10 +209,12 @@ export const Home = () => {
         <div className="about-section">
           <h2>Sobre Nosotros</h2>
           <p>
-            Symphoniac es una tienda de instrumentos musicales con más de 15 años de experiencia en el mercado. Tenemos
-            el conocimiento y la capacidad como para informarte acerca de las mejores elecciones para tu compra musical.
-            Ofrecemos una amplia variedad de instrumentos de las mejores marcas, con envíos a todo el país y garantía en
-            todos nuestros productos.
+            Symphoniac es una tienda de instrumentos musicales con más de 15
+            años de experiencia en el mercado. Tenemos el conocimiento y la
+            capacidad como para informarte acerca de las mejores elecciones para
+            tu compra musical. Ofrecemos una amplia variedad de instrumentos de
+            las mejores marcas, con envíos a todo el país y garantía en todos
+            nuestros productos.
           </p>
         </div>
 
@@ -211,7 +227,7 @@ export const Home = () => {
         </div>
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

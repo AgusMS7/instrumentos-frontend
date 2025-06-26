@@ -1,12 +1,13 @@
-import type React from "react"
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import { Navbar } from "./components/Navbar"
-import { Home } from "./pages/Home"
-import { Productos } from "./pages/Productos"
-import { DetalleInstrumento } from "./pages/DetalleInstrumento"
-import { DondeEstamos } from "./pages/DondeEstamos"
-import { Admin } from "./pages/Admin"
-import "./App.css"
+import type React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Navbar } from "./components/Navbar";
+import { ScrollToTop } from "./components/ScrollToTop";
+import { Home } from "./pages/Home";
+import { Productos } from "./pages/Productos";
+import { DetalleInstrumento } from "./pages/DetalleInstrumento";
+import { DondeEstamos } from "./pages/DondeEstamos";
+import { Admin } from "./pages/Admin";
+import "./App.css";
 
 const App: React.FC = () => {
   return (
@@ -16,9 +17,10 @@ const App: React.FC = () => {
         v7_relativeSplatPath: true,
       }}
     >
-      <div className="App">
+      <div className="app-container">
+        <ScrollToTop />
         <Navbar />
-        <main className="main-content">
+        <main className="app-main">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/productos" element={<Productos />} />
@@ -29,7 +31,7 @@ const App: React.FC = () => {
         </main>
       </div>
     </Router>
-  )
-}
+  );
+};
 
-export default App
+export default App;
